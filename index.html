@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LRT Queue Optimizer — Metro Manila</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0e1420;
+    --surface2: #141c2e;
+    --border: #1e2d4a;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --accent3: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 30px rgba(0,212,255,0.15);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── BACKGROUND GRID ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.2rem;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: -0.02em;
+  }
+  .nav-logo span { color: var(--text); }
+  .nav-logo .dot { width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
+  .nav-links { display:flex;gap:0.5rem;align-items:center; }
+  .nav-links a {
+    font-size: 0.875rem; font-weight: 500;
+    color: var(--muted); text-decoration: none;
+    padding: 8px 16px; border-radius: 8px;
+    transition: all 0.2s; border: 1px solid transparent;
+    cursor: pointer;
+  }
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--accent); background: rgba(0,212,255,0.08);
+    border-color: rgba(0,212,255,0.2);
+  }
+
+  /* ── PAGES ── */
+  .page { display:none; padding-top: 64px; min-height:100vh; position:relative;z-index:1; }
+  .page.active { display:block; }
+
+  /* ── HOME ── */
+  .hero {
+    min-height: calc(100vh - 64px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 4rem 2rem;
+    position: relative;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.25);
+    padding: 6px 16px; border-radius: 100px; margin-bottom: 2rem;
+    font-size: 0.78rem; font-weight: 500; color: var(--accent);
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5rem);
+    font-weight: 800; line-height: 1.05;
+    letter-spacing: -0.03em;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p {
+    max-width: 520px; margin: 1.5rem auto 2.5rem;
+    color: var(--muted); font-size: 1.05rem; line-height: 1.7;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+  .hero-btns {
+    display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .btn-primary {
+    background: var(--accent); color: #080c14;
+    border: none; padding: 13px 28px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 0 35px rgba(0,212,255,0.5); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); padding: 13px 28px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.25s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+  /* LRT LINE VIZ */
+  .lrt-line-viz {
+    margin-top: 4rem; width: 100%; max-width: 900px;
+    animation: fadeUp 0.6s 0.4s ease both;
+  }
+  .lrt-line-label {
+    font-family: 'Syne', sans-serif; font-size: 0.7rem;
+    font-weight: 700; letter-spacing: 0.1em;
+    color: var(--muted); text-align: left; margin-bottom: 10px;
+  }
+  .lrt-track {
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto; padding-bottom: 8px;
+  }
+  .lrt-track::-webkit-scrollbar { height: 3px; }
+  .lrt-track::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .station-node {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    flex-shrink: 0;
+  }
+  .station-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--accent); background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 700; color: var(--accent);
+    cursor: pointer; transition: all 0.25s; position: relative;
+    z-index:2;
+  }
+  .station-circle:hover {
+    background: var(--accent); color: var(--bg);
+    transform: scale(1.3);
+    box-shadow: 0 0 15px rgba(0,212,255,0.5);
+  }
+  .station-label {
+    font-size: 0.55rem; color: var(--muted); white-space: nowrap;
+    max-width: 50px; text-align: center; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .track-line {
+    height: 2px; flex: 1; min-width: 12px;
+    background: linear-gradient(90deg, var(--accent), rgba(0,212,255,0.3));
+    margin-bottom: 22px; flex-shrink: 0;
+  }
+  .lrt2-track .station-circle { border-color: var(--accent2); color: var(--accent2); }
+  .lrt2-track .station-circle:hover { background: var(--accent2); color: #fff; box-shadow: 0 0 15px rgba(124,58,237,0.5); }
+  .lrt2-track .track-line { background: linear-gradient(90deg, var(--accent2), rgba(124,58,237,0.3)); }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+    max-width: 700px; margin: 3rem auto 0;
+    animation: fadeUp 0.6s 0.5s ease both;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; text-align: center;
+    transition: all 0.3s;
+  }
+  .stat-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+  .stat-num { font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent); }
+  .stat-lbl { font-size:0.75rem;color:var(--muted);margin-top:4px; }
+
+  /* ── ABOUT ── */
+  .about-hero {
+    padding: 5rem 2rem 3rem;
+    text-align: center; max-width: 700px; margin: 0 auto;
+  }
+  .about-hero h2 {
+    font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;
+    letter-spacing:-0.03em;margin-bottom:1rem;
+  }
+  .about-hero p { color:var(--muted);line-height:1.8;font-size:1rem; }
+  .method-cards {
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:1.5rem;max-width:1000px;margin:3rem auto;padding:0 2rem;
+  }
+  .method-card {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:2rem;
+    transition:all 0.3s;position:relative;overflow:hidden;
+  }
+  .method-card::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    opacity:0;transition:opacity 0.3s;
+  }
+  .method-card:hover { transform:translateY(-6px);border-color:rgba(0,212,255,0.3);box-shadow:var(--glow); }
+  .method-card:hover::before { opacity:1; }
+  .method-icon {
+    width:48px;height:48px;border-radius:12px;
+    background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.3rem;margin-bottom:1.2rem;
+  }
+  .method-card h3 { font-family:'Syne',sans-serif;font-weight:700;margin-bottom:0.6rem;font-size:1.05rem; }
+  .method-card p { color:var(--muted);font-size:0.88rem;line-height:1.7; }
+  .team-section { max-width:1000px;margin:0 auto;padding:3rem 2rem; }
+  .section-title {
+    font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;
+    letter-spacing:-0.02em;margin-bottom:2rem;text-align:center;
+  }
+
+  /* ── MEMBERS ── */
+  .members-grid {
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:1.5rem;max-width:1100px;margin:3rem auto;padding:0 2rem;
+  }
+  .member-card {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:2rem 1.5rem;text-align:center;
+    transition:all 0.35s;cursor:pointer;position:relative;overflow:hidden;
+  }
+  .member-card::after {
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 0%,rgba(0,212,255,0.07),transparent 70%);
+    opacity:0;transition:opacity 0.3s;
+  }
+  .member-card:hover { transform:translateY(-8px) scale(1.02);border-color:rgba(0,212,255,0.35);box-shadow:0 20px 50px rgba(0,0,0,0.4); }
+  .member-card:hover::after { opacity:1; }
+  .member-avatar {
+    width:72px;height:72px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;
+    font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;
+    border:2px solid var(--border);
+    transition:all 0.3s;
+  }
+  .member-card:hover .member-avatar { transform:scale(1.1);border-color:var(--accent); }
+  .member-name { font-family:'Syne',sans-serif;font-weight:700;margin-bottom:4px;font-size:0.95rem; }
+  .member-role { font-size:0.78rem;color:var(--accent);margin-bottom:8px; }
+  .member-id { font-size:0.72rem;color:var(--muted); }
+
+  /* ── DASHBOARD ── */
+  .dashboard { max-width:1200px;margin:0 auto;padding:2rem; }
+  .dash-header { margin-bottom:2rem; }
+  .dash-header h2 { font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-0.02em; }
+  .dash-header p { color:var(--muted);margin-top:4px; }
+
+  /* STEPPER */
+  .stepper {
+    display:flex;gap:0;margin-bottom:2rem;background:var(--surface);
+    border:1px solid var(--border);border-radius:14px;padding:1.5rem;
+    overflow-x:auto;
+  }
+  .step {
+    display:flex;flex-direction:column;align-items:center;flex:1;gap:8px;
+    position:relative;min-width:100px;
+  }
+  .step:not(:last-child)::after {
+    content:'';position:absolute;top:18px;left:calc(50% + 20px);
+    right:calc(-50% + 20px);height:2px;
+    background:var(--border);z-index:0;
+    transition:background 0.4s;
+  }
+  .step.done:not(:last-child)::after { background:var(--accent); }
+  .step-num {
+    width:36px;height:36px;border-radius:50%;
+    border:2px solid var(--border);background:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;color:var(--muted);
+    transition:all 0.3s;z-index:1;position:relative;
+  }
+  .step.active .step-num { border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.1);box-shadow:0 0 12px rgba(0,212,255,0.3); }
+  .step.done .step-num { border-color:var(--accent);background:var(--accent);color:#080c14; }
+  .step-lbl { font-size:0.7rem;color:var(--muted);text-align:center;line-height:1.4;max-width:80px; }
+  .step.active .step-lbl { color:var(--accent); }
+  .step.done .step-lbl { color:var(--text); }
+
+  /* PANELS */
+  .panel {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:16px;padding:2rem;margin-bottom:1.5rem;
+    display:none;animation:fadeUp 0.4s ease;
+  }
+  .panel.active { display:block; }
+  .panel-title {
+    font-family:'Syne',sans-serif;font-weight:700;font-size:1.2rem;
+    margin-bottom:1.5rem;display:flex;align-items:center;gap:10px;
+  }
+  .panel-title .badge {
+    background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);
+    color:var(--accent);padding:3px 10px;border-radius:20px;font-size:0.7rem;
+  }
+
+  /* MATRIX GRID */
+  .matrix-config {
+    display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;
+  }
+  @media(max-width:640px){.matrix-config{grid-template-columns:1fr;}}
+  .field-group { display:flex;flex-direction:column;gap:6px; }
+  .field-label { font-size:0.78rem;color:var(--muted);font-weight:500; }
+  .field-select, .field-input {
+    background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);padding:10px 14px;border-radius:10px;
+    font-family:'DM Sans',sans-serif;font-size:0.9rem;
+    transition:all 0.2s;width:100%;
+  }
+  .field-select:focus,.field-input:focus { outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1); }
+  .cost-matrix { overflow-x:auto;margin:1.5rem 0; }
+  .cost-table {
+    border-collapse:collapse;width:100%;
+    font-size:0.82rem;
+  }
+  .cost-table th {
+    background:var(--surface2);padding:10px 14px;
+    text-align:center;font-family:'Syne',sans-serif;font-weight:700;
+    border:1px solid var(--border);color:var(--accent);
+    font-size:0.75rem;white-space:nowrap;
+  }
+  .cost-table td {
+    border:1px solid var(--border);padding:6px;text-align:center;
+  }
+  .cost-table td input {
+    width:60px;background:var(--bg);border:1px solid var(--border);
+    color:var(--text);padding:6px;border-radius:6px;text-align:center;
+    font-family:'DM Sans',sans-serif;font-size:0.82rem;
+    transition:all 0.2s;
+  }
+  .cost-table td input:focus { outline:none;border-color:var(--accent);background:rgba(0,212,255,0.05); }
+  .cost-table .row-header {
+    font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);
+    font-size:0.75rem;background:var(--surface2);white-space:nowrap;
+    padding:10px 14px;
+  }
+  .supply-demand-row { display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem; }
+  .sd-group { display:flex;align-items:center;gap:8px; }
+  .sd-label { font-size:0.78rem;color:var(--muted);white-space:nowrap; }
+  .sd-input {
+    width:70px;background:var(--surface2);border:1px solid var(--border);
+    color:var(--text);padding:8px;border-radius:8px;text-align:center;
+    font-family:'DM Sans',sans-serif;font-size:0.88rem;
+    transition:all 0.2s;
+  }
+  .sd-input:focus { outline:none;border-color:var(--accent3);box-shadow:0 0 0 3px rgba(245,158,11,0.1); }
+  .btn-solve {
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    color:#fff;border:none;padding:12px 28px;border-radius:10px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;
+    cursor:pointer;transition:all 0.3s;margin-top:1rem;
+    box-shadow:0 4px 20px rgba(124,58,237,0.3);
+  }
+  .btn-solve:hover { transform:translateY(-3px);box-shadow:0 8px 30px rgba(124,58,237,0.5); }
+  .btn-next {
+    background:var(--accent);color:#080c14;border:none;padding:11px 24px;
+    border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;
+    font-size:0.88rem;cursor:pointer;transition:all 0.25s;margin-top:1rem;margin-right:8px;
+    box-shadow:0 4px 15px rgba(0,212,255,0.25);
+  }
+  .btn-next:hover { transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,212,255,0.4); }
+
+  /* RESULT TABLE */
+  .result-table {
+    border-collapse:collapse;width:100%;font-size:0.82rem;margin-top:1rem;
+  }
+  .result-table th {
+    background:rgba(0,212,255,0.08);border:1px solid var(--border);
+    padding:10px 14px;font-family:'Syne',sans-serif;font-weight:700;
+    color:var(--accent);font-size:0.75rem;white-space:nowrap;
+  }
+  .result-table td {
+    border:1px solid var(--border);padding:9px 14px;
+    text-align:center;transition:background 0.2s;
+  }
+  .result-table tr:hover td { background:rgba(0,212,255,0.04); }
+  .result-table .cell-alloc {
+    background:rgba(0,212,255,0.12);color:var(--accent);font-weight:700;
+    font-family:'Syne',sans-serif;
+  }
+  .result-table .cell-zero { color:var(--border); }
+  .result-table .row-header {
+    background:rgba(124,58,237,0.08);color:#a78bfa;font-family:'Syne',sans-serif;
+    font-weight:700;font-size:0.75rem;white-space:nowrap;padding:10px 14px;
+  }
+
+  /* ASSIGNMENT TABLE */
+  .assignment-row {
+    display:flex;align-items:center;padding:12px 16px;
+    border:1px solid var(--border);border-radius:10px;margin-bottom:8px;
+    background:var(--surface2);transition:all 0.25s;
+  }
+  .assignment-row:hover { border-color:rgba(0,212,255,0.3);transform:translateX(4px); }
+  .assignment-from { flex:1;font-size:0.85rem; }
+  .assignment-arrow { color:var(--accent);font-size:1.1rem;margin:0 12px; }
+  .assignment-to { flex:1;font-size:0.85rem; }
+  .assignment-cost {
+    background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);
+    color:var(--green);padding:4px 12px;border-radius:20px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.78rem;
+  }
+  .total-cost-banner {
+    background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(124,58,237,0.08));
+    border:1px solid rgba(0,212,255,0.2);border-radius:12px;
+    padding:1.5rem;margin-top:1.5rem;text-align:center;
+  }
+  .total-cost-banner .amount {
+    font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--accent);
+  }
+  .total-cost-banner .label { color:var(--muted);font-size:0.85rem;margin-top:4px; }
+
+  /* SIMULATION */
+  .sim-controls { display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1.5rem; }
+  .sim-speed { display:flex;align-items:center;gap:8px; }
+  .sim-speed label { font-size:0.78rem;color:var(--muted); }
+  .sim-speed input[type=range] { accent-color:var(--accent);width:100px; }
+  .btn-sim {
+    background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);
+    color:var(--green);padding:10px 20px;border-radius:10px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;
+    cursor:pointer;transition:all 0.25s;
+  }
+  .btn-sim:hover { background:var(--green);color:#080c14;transform:translateY(-2px); }
+  .btn-sim-stop {
+    background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);
+    color:var(--red);padding:10px 20px;border-radius:10px;
+    font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;
+    cursor:pointer;transition:all 0.25s;
+  }
+  .btn-sim-stop:hover { background:var(--red);color:#fff; }
+  .flow-grid {
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:1rem;margin-top:1rem;
+  }
+  .flow-card {
+    background:var(--surface2);border:1px solid var(--border);
+    border-radius:12px;padding:1.2rem;transition:all 0.3s;
+    position:relative;overflow:hidden;
+  }
+  .flow-card.active-flow {
+    border-color:var(--accent);
+    box-shadow:0 0 20px rgba(0,212,255,0.2);
+    animation:flowPulse 1s ease infinite;
+  }
+  .flow-card .flow-route { font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;margin-bottom:6px; }
+  .flow-card .flow-passengers {
+    font-size:1.6rem;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);
+  }
+  .flow-card .flow-label { font-size:0.7rem;color:var(--muted);margin-top:2px; }
+  .flow-progress {
+    height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;
+  }
+  .flow-bar {
+    height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+    border-radius:2px;transition:width 0.5s ease;width:0%;
+  }
+  .log-panel {
+    background:var(--bg);border:1px solid var(--border);
+    border-radius:10px;padding:1rem;max-height:180px;overflow-y:auto;
+    font-family:'Courier New',monospace;font-size:0.75rem;color:var(--muted);
+    margin-top:1rem;
+  }
+  .log-entry { padding:3px 0;border-bottom:1px solid rgba(30,45,74,0.5); }
+  .log-entry .ts { color:var(--accent3);margin-right:8px; }
+  .log-entry.success .msg { color:var(--green); }
+  .log-entry.warn .msg { color:var(--accent3); }
+
+  /* UTILITY */
+  .info-box {
+    background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);
+    border-radius:10px;padding:1rem 1.2rem;margin:1rem 0;
+    font-size:0.85rem;color:var(--muted);line-height:1.7;
+  }
+  .info-box strong { color:var(--accent); }
+  .tag {
+    display:inline-block;padding:3px 10px;border-radius:20px;
+    font-size:0.7rem;font-weight:600;margin-right:4px;
+  }
+  .tag-blue { background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2); }
+  .tag-purple { background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.2); }
+  .tag-green { background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2); }
+
+  /* PAGE HEADER */
+  .page-header {
+    padding:4rem 2rem 2rem;max-width:1200px;margin:0 auto;
+    border-bottom:1px solid var(--border);margin-bottom:0;
+  }
+  .page-header h2 {
+    font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;
+    letter-spacing:-0.03em;margin-bottom:6px;
+  }
+  .page-header p { color:var(--muted);font-size:0.95rem; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity:0;transform:translateY(20px); }
+    to { opacity:1;transform:translateY(0); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1;transform:scale(1); }
+    50% { opacity:0.5;transform:scale(1.2); }
+  }
+  @keyframes flowPulse {
+    0%,100% { box-shadow:0 0 10px rgba(0,212,255,0.2); }
+    50% { box-shadow:0 0 25px rgba(0,212,255,0.4); }
+  }
+  @keyframes trainMove {
+    from { transform:translateX(-20px);opacity:0; }
+    to { transform:translateX(0);opacity:1; }
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:5px;height:5px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:var(--border);border-radius:3px; }
+
+  .station-picker-list {
+    background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+    max-height:200px;overflow-y:auto;padding:6px;
+    display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start;
+  }
+  .station-picker-list::-webkit-scrollbar{width:4px;}
+  .station-picker-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .station-chip {
+    padding:5px 12px;border-radius:20px;font-size:0.75rem;font-weight:500;
+    cursor:pointer;transition:all 0.2s;white-space:nowrap;
+    background:var(--bg);border:1px solid var(--border);color:var(--muted);
+    user-select:none;
+  }
+  .station-chip:hover { border-color:var(--accent);color:var(--accent);transform:translateY(-1px); }
+  .station-chip.selected-src {
+    background:rgba(0,212,255,0.12);border-color:rgba(0,212,255,0.4);
+    color:var(--accent);font-weight:600;
+  }
+  .station-chip.selected-dst {
+    background:rgba(124,58,237,0.12);border-color:rgba(124,58,237,0.4);
+    color:#a78bfa;font-weight:600;
+  }
+  .station-chip.lrt2 { font-style:italic; }
+  .sel-tag {
+    display:inline-flex;align-items:center;gap:6px;
+    padding:4px 10px 4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;
+    cursor:default;
+  }
+  .sel-tag-src { background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent); }
+  .sel-tag-dst { background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.3);color:#a78bfa; }
+  .sel-tag button {
+    background:none;border:none;cursor:pointer;color:inherit;opacity:0.6;
+    font-size:0.9rem;line-height:1;padding:0;transition:opacity 0.2s;
+  }
+  .sel-tag button:hover { opacity:1; }
+
+  /* ── HAMBURGER ── */
+  .hamburger {
+    display:none; flex-direction:column; gap:5px;
+    background:none; border:none; cursor:pointer; padding:6px; z-index:200;
+  }
+  .hamburger span {
+    display:block; width:22px; height:2px; background:var(--text);
+    border-radius:2px; transition:all 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity:0; transform:scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+  .nav-overlay {
+    display:none; position:fixed; inset:0; z-index:98;
+    background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);
+  }
+  .nav-overlay.active { display:block; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:768px){
+
+    /* NAV → slide-down drawer */
+    .hamburger { display:flex; }
+    .nav-links {
+      position:fixed; top:64px; left:0; right:0; z-index:99;
+      background:rgba(8,12,20,0.97); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+      flex-direction:column; gap:0; padding:0.5rem;
+      transform:translateY(-110%); opacity:0;
+      transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+      pointer-events:none;
+    }
+    .nav-links.open {
+      transform:translateY(0); opacity:1; pointer-events:auto;
+    }
+    .nav-links a {
+      padding:14px 18px; border-radius:10px;
+      font-size:1rem; border-bottom:1px solid var(--border);
+      width:100%;
+    }
+    .nav-links a:last-child { border-bottom:none; }
+
+    /* HERO */
+    .hero { padding:3rem 1.2rem 2rem; justify-content:flex-start; padding-top:3rem; }
+    .hero h1 { font-size:2.4rem; }
+    .hero p { font-size:0.95rem; }
+    .hero-btns { flex-direction:column; align-items:stretch; }
+    .btn-primary, .btn-secondary { text-align:center; }
+    .lrt-line-viz { margin-top:2.5rem; }
+    .stats-grid { grid-template-columns:repeat(3,1fr); gap:0.6rem; }
+    .stat-card { padding:1rem 0.6rem; }
+    .stat-num { font-size:1.4rem; }
+
+    /* ABOUT */
+    .about-hero { padding:3rem 1.2rem 2rem; }
+    .about-hero h2 { font-size:2rem; }
+    .method-cards { padding:0 1.2rem; gap:1rem; }
+    .team-section { padding:2rem 1.2rem; }
+    .section-title { font-size:1.4rem; }
+    .assignment-row { flex-wrap:wrap; gap:8px; }
+    .assignment-from, .assignment-to { min-width:120px; }
+    .assignment-arrow { margin:0 4px; }
+    .assignment-cost { font-size:0.72rem; }
+
+    /* MEMBERS */
+    .page-header { padding:2.5rem 1.2rem 1.5rem; }
+    .page-header h2 { font-size:1.7rem; }
+    .members-grid {
+      grid-template-columns:repeat(2,1fr);
+      gap:1rem; padding:1.5rem 1.2rem;
+      margin:1rem auto;
+    }
+    .member-name { font-size:0.82rem; }
+
+    /* DASHBOARD */
+    .dashboard { padding:1.2rem; }
+    .dash-header h2 { font-size:1.5rem; }
+    .stepper { padding:1rem 0.8rem; gap:0; }
+    .step { min-width:52px; }
+    .step-lbl { font-size:0.6rem; max-width:52px; }
+    .step-num { width:28px; height:28px; font-size:0.72rem; }
+    .step:not(:last-child)::after {
+      left:calc(50% + 14px); right:calc(-50% + 14px); top:14px;
+    }
+    .panel { padding:1.2rem; }
+    .panel-title { font-size:1rem; flex-wrap:wrap; }
+    .info-box { font-size:0.82rem; }
+
+    /* STATION PICKER — stack to single column */
+    #panel-1 > div[style*="grid-template-columns"] {
+      display:flex !important; flex-direction:column !important;
+    }
+    .station-picker-list { max-height:160px; }
+
+    /* COST MATRIX — horizontal scroll */
+    .cost-matrix { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .cost-table, .result-table { font-size:0.72rem; min-width:340px; }
+    .cost-table th, .cost-table td, .result-table th, .result-table td { padding:6px 8px; }
+    .cost-table td input { width:48px; padding:4px; font-size:0.75rem; }
+
+    /* SUPPLY DEMAND ROW */
+    .supply-demand-row { flex-wrap:wrap; gap:8px; }
+    .sd-input { width:60px; }
+
+    /* BUTTONS */
+    .btn-next, .btn-solve { padding:10px 18px; font-size:0.82rem; }
+    .sim-controls { gap:0.6rem; }
+    .btn-sim, .btn-sim-stop { padding:9px 14px; font-size:0.8rem; }
+    .sim-speed input[type=range] { width:80px; }
+
+    /* FLOW GRID */
+    .flow-grid { grid-template-columns:1fr 1fr; gap:0.8rem; }
+    .flow-card { padding:1rem; }
+    .flow-card .flow-passengers { font-size:1.3rem; }
+    .flow-card .flow-route { font-size:0.75rem; }
+
+    /* TOTAL BANNER */
+    .total-cost-banner .amount { font-size:1.7rem; }
+
+    /* SELECTED TAGS */
+    #panel-1 > div:nth-child(4) {
+      display:flex !important; flex-direction:column !important;
+    }
+  }
+
+  @media(max-width:420px){
+    .hero h1 { font-size:2rem; }
+    .stats-grid { gap:0.5rem; }
+    .stat-card { padding:0.8rem 0.4rem; }
+    .stat-num { font-size:1.2rem; }
+    .members-grid { grid-template-columns:1fr; }
+    .flow-grid { grid-template-columns:1fr; }
+    .step-lbl { display:none; }
+    .step { min-width:36px; }
+  }
+
+  @keyframes floating {
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-8px);}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="dot"></div>
+    LRT<span>Queue</span>
+  </div>
+  <div class="nav-links" id="nav-links">
+    <a onclick="showPage('home');closeMenu()" class="active" id="nav-home">Home</a>
+    <a onclick="showPage('about');closeMenu()" id="nav-about">About</a>
+    <a onclick="showPage('dashboard');closeMenu()" id="nav-dashboard">Dashboard</a>
+    <a onclick="showPage('members');closeMenu()" id="nav-members">Members</a>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-overlay" id="nav-overlay" onclick="closeMenu()"></div>
+
+<!-- ══════════════════════════ HOME ══════════════════════════ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-badge">🚇 Metro Manila LRT Optimization System</div>
+    <h1>Smarter Queuing<br>for the <em>Metro</em></h1>
+    <p>Applying the Hungarian Method and Northwest Corner Method to optimize passenger flow across LRT-1 and LRT-2 stations in real time.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('dashboard')">Launch Dashboard →</button>
+      <button class="btn-secondary" onclick="showPage('about')">Learn the Method</button>
+    </div>
+
+    <!-- LRT-1 LINE -->
+    <div class="lrt-line-viz">
+      <div class="lrt-line-label">● LRT-1 LINE — NORTH EXTENSION TO BACLARAN</div>
+      <div class="lrt-track" id="lrt1-track"></div>
+    </div>
+    <div class="lrt-line-viz" style="margin-top:2rem;">
+      <div class="lrt-line-label" style="color:#a78bfa;">● LRT-2 LINE — RECTO TO ANTIPOLO</div>
+      <div class="lrt-track lrt2-track" id="lrt2-track"></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card floating">
+        <div class="stat-num">25</div>
+        <div class="stat-lbl">LRT-1 Stations</div>
+      </div>
+      <div class="stat-card floating" style="animation-delay:0.3s">
+        <div class="stat-num">13</div>
+        <div class="stat-lbl">LRT-2 Stations</div>
+      </div>
+      <div class="stat-card floating" style="animation-delay:0.6s">
+        <div class="stat-num">~800K</div>
+        <div class="stat-lbl">Daily Riders</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ ABOUT ══════════════════════════ -->
+<div id="page-about" class="page">
+  <div class="about-hero">
+    <h2>How It Works</h2>
+    <p>This system uses classical Operations Research methods to solve the LRT passenger assignment problem — minimizing travel cost (time) while satisfying supply (train capacity) and demand (passenger load) constraints.</p>
+  </div>
+  <div class="method-cards">
+    <div class="method-card">
+      <div class="method-icon">🗺️</div>
+      <h3>Transportation Problem</h3>
+      <p>We model each LRT station as a <strong>source</strong> (supply) or <strong>destination</strong> (demand). The cost matrix represents travel time between stations in minutes.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-icon">↖️</div>
+      <h3>Northwest Corner Method</h3>
+      <p>NWCM provides the initial basic feasible solution by starting from the top-left cell and allocating as much as possible — fast but not optimal.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-icon">🎯</div>
+      <h3>Hungarian Algorithm</h3>
+      <p>We then apply the Hungarian Method (MODI / Stepping Stone) to reduce total cost iteratively until the optimal assignment is reached.</p>
+    </div>
+    <div class="method-card">
+      <div class="method-icon">📡</div>
+      <h3>Real-Time Simulation</h3>
+      <p>The optimal assignments are simulated as live passenger flows between origin and destination stations with queue status indicators.</p>
+    </div>
+  </div>
+
+  <div class="team-section">
+    <div class="section-title">The 5-Step Process</div>
+    <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1rem;">
+      <div class="assignment-row">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);margin-right:1rem;flex-shrink:0;">1</div>
+        <div><strong>Define Matrix</strong> — Choose source & destination stations, input supply, demand, and cost values.</div>
+      </div>
+      <div class="assignment-row">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);margin-right:1rem;flex-shrink:0;">2</div>
+        <div><strong>NWCM Initial</strong> — Compute the initial basic feasible solution using the Northwest Corner Method.</div>
+      </div>
+      <div class="assignment-row">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);margin-right:1rem;flex-shrink:0;">3</div>
+        <div><strong>Assign Tasks</strong> — Map each supply node to its best-fit demand node from the initial BFS.</div>
+      </div>
+      <div class="assignment-row">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);margin-right:1rem;flex-shrink:0;">4</div>
+        <div><strong>Hungarian Optimization</strong> — Reduce the cost matrix and find the optimal one-to-one assignment.</div>
+      </div>
+      <div class="assignment-row">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:var(--accent);margin-right:1rem;flex-shrink:0;">5</div>
+        <div><strong>Simulate Flow</strong> — Watch optimized passenger flows animate across the station network in real time.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ MEMBERS ══════════════════════════ -->
+<div id="page-members" class="page">
+  <div class="page-header">
+    <h2>Project Members</h2>
+    <p>The team behind the LRT Queue Optimization System</p>
+  </div>
+  <div class="members-grid" id="members-grid"></div>
+</div>
+
+<!-- ══════════════════════════ DASHBOARD ══════════════════════════ -->
+<div id="page-dashboard" class="page">
+  <div class="dashboard">
+    <div class="dash-header">
+      <h2>Queue Optimizer Dashboard</h2>
+      <p>Input supply/demand → NWCM → Assign → Hungarian Opt → Simulate</p>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+      <div class="step active" id="step-1"><div class="step-num">1</div><div class="step-lbl">Define Matrix</div></div>
+      <div class="step" id="step-2"><div class="step-num">2</div><div class="step-lbl">NWCM Initial</div></div>
+      <div class="step" id="step-3"><div class="step-num">3</div><div class="step-lbl">Assign Tasks</div></div>
+      <div class="step" id="step-4"><div class="step-num">4</div><div class="step-lbl">Hungarian Opt.</div></div>
+      <div class="step" id="step-5"><div class="step-num">5</div><div class="step-lbl">Simulate Flow</div></div>
+    </div>
+
+    <!-- PANEL 1: DEFINE MATRIX -->
+    <div class="panel active" id="panel-1">
+      <div class="panel-title">Define Matrix <span class="badge">Step 1</span></div>
+      <div class="info-box">
+        Pick <strong>Source Stations</strong> (supply/origin) and <strong>Destination Stations</strong> (demand) from the full LRT network below. You can search, click to toggle, or type a custom station name.
+      </div>
+
+      <!-- STATION PICKER GRID -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+
+        <!-- SOURCE PICKER -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="field-label" style="font-size:0.85rem;color:var(--accent);font-weight:700;">🟦 SOURCE STATIONS <span id="src-count" style="color:var(--muted);font-weight:400;">(0 selected)</span></div>
+            <button onclick="clearSelection('src')" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">Clear</button>
+          </div>
+          <div style="position:relative;margin-bottom:8px;">
+            <input type="text" id="src-search" placeholder="Search station…" oninput="filterStations('src')"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 14px 9px 36px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;transition:all 0.2s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;">🔍</span>
+          </div>
+          <div id="src-station-list" class="station-picker-list"></div>
+          <!-- Custom input -->
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="text" id="src-custom" placeholder="Add custom station…"
+              style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')addCustomStation('src')"/>
+            <button onclick="addCustomStation('src')" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);color:var(--accent);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,212,255,0.2)'" onmouseout="this.style.background='rgba(0,212,255,0.1)'">+ Add</button>
+          </div>
+        </div>
+
+        <!-- DEST PICKER -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="field-label" style="font-size:0.85rem;color:#a78bfa;font-weight:700;">🟣 DESTINATION STATIONS <span id="dst-count" style="color:var(--muted);font-weight:400;">(0 selected)</span></div>
+            <button onclick="clearSelection('dst')" style="font-size:0.7rem;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;">Clear</button>
+          </div>
+          <div style="position:relative;margin-bottom:8px;">
+            <input type="text" id="dst-search" placeholder="Search station…" oninput="filterStations('dst')"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 14px 9px 36px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:0.85rem;transition:all 0.2s;"
+              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"/>
+            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.85rem;">🔍</span>
+          </div>
+          <div id="dst-station-list" class="station-picker-list"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="text" id="dst-custom" placeholder="Add custom station…"
+              style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.82rem;"
+              onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter')addCustomStation('dst')"/>
+            <button onclick="addCustomStation('dst')" style="background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.25);color:#a78bfa;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;" onmouseover="this.style.background='rgba(124,58,237,0.2)'" onmouseout="this.style.background='rgba(124,58,237,0.1)'">+ Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SELECTED TAGS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+        <div>
+          <div class="field-label" style="margin-bottom:8px;">Selected Sources:</div>
+          <div id="src-tags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;"></div>
+        </div>
+        <div>
+          <div class="field-label" style="margin-bottom:8px;">Selected Destinations:</div>
+          <div id="dst-tags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:36px;"></div>
+        </div>
+      </div>
+
+      <!-- COST MATRIX -->
+      <div id="cost-matrix-container"></div>
+      <div id="supply-demand-section" style="display:none;">
+        <div class="supply-demand-row" id="supply-row"></div>
+        <div class="supply-demand-row" id="demand-row" style="margin-top:0.5rem;"></div>
+      </div>
+      <div id="matrix-warning" style="display:none;" class="info-box" style="color:var(--accent3);">⚠ Please select at least 2 source and 2 destination stations.</div>
+      <br>
+      <button class="btn-next" onclick="goToStep(2)">Compute NWCM →</button>
+    </div>
+
+    <!-- PANEL 2: NWCM -->
+    <div class="panel" id="panel-2">
+      <div class="panel-title">Northwest Corner Method <span class="badge">Step 2</span></div>
+      <div class="info-box">
+        Starting from the <strong>top-left (northwest) corner</strong>, allocate as much as possible to each cell before moving right or down. This gives us the initial basic feasible solution.
+      </div>
+      <div id="nwcm-result"></div>
+      <div id="nwcm-cost-display" style="margin-top:1rem;"></div>
+      <button class="btn-next" onclick="goToStep(3)">View Assignments →</button>
+      <button class="btn-next" style="background:var(--surface2);color:var(--text);box-shadow:none;" onclick="goToStep(1)">← Back</button>
+    </div>
+
+    <!-- PANEL 3: ASSIGN TASKS -->
+    <div class="panel" id="panel-3">
+      <div class="panel-title">Task Assignments <span class="badge">Step 3</span></div>
+      <div class="info-box">
+        Based on NWCM, each source station is assigned a destination. Non-zero allocations represent active passenger flows.
+      </div>
+      <div id="task-assignments"></div>
+      <button class="btn-next" onclick="goToStep(4)">Run Hungarian Optimization →</button>
+      <button class="btn-next" style="background:var(--surface2);color:var(--text);box-shadow:none;" onclick="goToStep(2)">← Back</button>
+    </div>
+
+    <!-- PANEL 4: HUNGARIAN -->
+    <div class="panel" id="panel-4">
+      <div class="panel-title">Hungarian Optimization <span class="badge">Step 4</span></div>
+      <div class="info-box">
+        The <strong>Hungarian Algorithm</strong> finds the optimal one-to-one assignment by reducing the cost matrix row-by-row and column-by-column, then covering zeros with minimum lines.
+      </div>
+      <div id="hungarian-steps"></div>
+      <div id="hungarian-result"></div>
+      <button class="btn-next" onclick="goToStep(5)">Launch Simulation →</button>
+      <button class="btn-next" style="background:var(--surface2);color:var(--text);box-shadow:none;" onclick="goToStep(3)">← Back</button>
+    </div>
+
+    <!-- PANEL 5: SIMULATE -->
+    <div class="panel" id="panel-5">
+      <div class="panel-title">Real-Time Flow Simulation <span class="badge">Step 5</span></div>
+      <div class="sim-controls">
+        <button class="btn-sim" id="btn-start-sim" onclick="startSimulation()">▶ Start Simulation</button>
+        <button class="btn-sim-stop" onclick="stopSimulation()">■ Stop</button>
+        <button class="btn-next" style="margin-top:0;" onclick="resetAll()">↺ Reset All</button>
+        <button class="btn-next" style="margin-top:0;background:var(--surface2);color:var(--text);box-shadow:none;" onclick="stopSimulation();goToStep(4)">← Back</button>
+        <div class="sim-speed">
+          <label>Speed</label>
+          <input type="range" min="1" max="5" value="3" id="sim-speed"/>
+        </div>
+      </div>
+      <div class="flow-grid" id="flow-grid"></div>
+      <div class="log-panel" id="sim-log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── ALL STATIONS ──
+const LRT1 = ['Fernando Poe Jr.','Balintawak','Monumento','5th Avenue','R. Papa','Abad Santos','Blumentritt','Tayuman','Bambang','Doroteo Jose','Carriedo','Central','United Nations','Pedro Gil','Quirino','Vito Cruz','Buendia','Libertad','EDSA','Boni','Guadalupe','Ayala','Magallanes','Baclaran'];
+const LRT2 = ['Recto','Legarda','Pureza','V. Mapa','J. Ruiz','Gilmore','Betty Go-Belmonte','Araneta-Cubao','Anonas','Katipunan','Santolan','Marikina-Pasig','Antipolo'];
+const ALL_STATIONS = [...LRT1.map(s=>({name:s,line:'LRT-1'})), ...LRT2.map(s=>({name:s,line:'LRT-2'}))];
+
+const MEMBERS = [
+  {name:'Castillo, Jc V.',role:'Project Member',id:'202412473'},
+  {name:'Minay, Tristan Kien R.',role:'Project Member',id:'202411918'},
+  {name:'Moreno, Angelo B.',role:'Project Member',id:'202312903'},
+  {name:'Sta. Ana, Frederick Gabriel F.',role:'Project Member',id:'202411025'},
+  {name:'Vallejos, Ysabel Hermione O.',role:'Project Member',id:'202412772'},
+  {name:'Zamora, Maxenne Viktoria D.',role:'Project Member',id:'202411552'},
+];
+
+// ── SELECTION STATE ──
+let selectedSrc = [], selectedDst = [];
+let costMatrix=[], supply=[], demand=[], nwcmAlloc=[], hungAssign=[];
+let simInterval=null, currentStep=1;
+
+// Distance-based default cost between two stations
+function defaultCost(a, b) {
+  const allNames = ALL_STATIONS.map(s=>s.name);
+  const ia = allNames.indexOf(a), ib = allNames.indexOf(b);
+  if(ia===-1||ib===-1) return Math.floor(Math.random()*15)+3;
+  return Math.max(2, Math.abs(ia-ib)*2 + Math.floor(Math.random()*3));
+}
+
+// ── NAV ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='dashboard') initPicker();
+  if(id==='members') buildMembers();
+}
+
+// ── BUILD LRT TRACKS ──
+function buildTrack(stations, containerId) {
+  const c=document.getElementById(containerId); c.innerHTML='';
+  stations.forEach((s,i)=>{
+    const node=document.createElement('div'); node.className='station-node';
+    node.innerHTML=`<div class="station-circle">${i+1}</div><div class="station-label">${s}</div>`;
+    c.appendChild(node);
+    if(i<stations.length-1){const line=document.createElement('div');line.className='track-line';c.appendChild(line);}
+  });
+}
+buildTrack(LRT1,'lrt1-track');
+buildTrack(LRT2,'lrt2-track');
+
+// ── MEMBERS ──
+function buildMembers() {
+  const g=document.getElementById('members-grid'); g.innerHTML='';
+  MEMBERS.forEach(m=>{
+    const initials=m.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+    g.innerHTML+=`<div class="member-card"><div class="member-avatar">${initials}</div><div class="member-name">${m.name}</div><div class="member-role">${m.role}</div><div class="member-id">${m.id}</div></div>`;
+  });
+}
+
+// ── STATION PICKER ──
+function initPicker() {
+  renderPickerList('src');
+  renderPickerList('dst');
+  renderTags('src');
+  renderTags('dst');
+  renderCostMatrix();
+}
+
+function renderPickerList(side) {
+  const query = document.getElementById(`${side}-search`).value.toLowerCase();
+  const listEl = document.getElementById(`${side}-station-list`);
+  const sel = side==='src' ? selectedSrc : selectedDst;
+  listEl.innerHTML='';
+  let currentLine='';
+  ALL_STATIONS.forEach(st=>{
+    if(query && !st.name.toLowerCase().includes(query)) return;
+    if(st.line!==currentLine){
+      currentLine=st.line;
+      const sep=document.createElement('div');
+      sep.style.cssText='width:100%;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;color:var(--muted);padding:4px 4px 2px;';
+      sep.textContent=st.line;
+      listEl.appendChild(sep);
+    }
+    const chip=document.createElement('div');
+    chip.className='station-chip'+(st.line==='LRT-2'?' lrt2':'');
+    const isSel = sel.includes(st.name);
+    if(isSel) chip.classList.add(side==='src'?'selected-src':'selected-dst');
+    chip.textContent=st.name;
+    chip.title=st.line;
+    chip.onclick=()=>toggleStation(side, st.name);
+    listEl.appendChild(chip);
+  });
+}
+
+function filterStations(side) { renderPickerList(side); }
+
+function toggleStation(side, name) {
+  const arr = side==='src' ? selectedSrc : selectedDst;
+  const idx = arr.indexOf(name);
+  if(idx===-1) arr.push(name);
+  else arr.splice(idx,1);
+  renderPickerList(side);
+  renderTags(side);
+  document.getElementById(`${side==='src'?'src':'dst'}-count`).textContent=`(${arr.length} selected)`;
+  renderCostMatrix();
+}
+
+function addCustomStation(side) {
+  const inp=document.getElementById(`${side}-custom`);
+  const name=inp.value.trim();
+  if(!name) return;
+  const arr=side==='src'?selectedSrc:selectedDst;
+  if(!arr.includes(name)) arr.push(name);
+  inp.value='';
+  renderPickerList(side);
+  renderTags(side);
+  document.getElementById(`${side}-count`).textContent=`(${arr.length} selected)`;
+  renderCostMatrix();
+}
+
+function clearSelection(side) {
+  if(side==='src') selectedSrc=[];
+  else selectedDst=[];
+  renderPickerList(side);
+  renderTags(side);
+  document.getElementById(`${side}-count`).textContent='(0 selected)';
+  renderCostMatrix();
+}
+
+function removeStation(side, name) {
+  const arr=side==='src'?selectedSrc:selectedDst;
+  const idx=arr.indexOf(name);
+  if(idx>-1) arr.splice(idx,1);
+  renderPickerList(side);
+  renderTags(side);
+  document.getElementById(`${side}-count`).textContent=`(${arr.length} selected)`;
+  renderCostMatrix();
+}
+
+function renderTags(side) {
+  const arr=side==='src'?selectedSrc:selectedDst;
+  const el=document.getElementById(`${side}-tags`);
+  el.innerHTML=arr.length===0
+    ? `<span style="font-size:0.75rem;color:var(--muted);font-style:italic;">None selected yet</span>`
+    : arr.map(n=>`<span class="sel-tag sel-tag-${side}">
+        ${n}
+        <button onclick="removeStation('${side}','${n.replace(/'/g,"\\'")}')">✕</button>
+      </span>`).join('');
+}
+
+function renderCostMatrix() {
+  const ns=selectedSrc.length, nd=selectedDst.length;
+  const warn=document.getElementById('matrix-warning');
+  const sdSection=document.getElementById('supply-demand-section');
+  if(ns<1||nd<1){
+    document.getElementById('cost-matrix-container').innerHTML=
+      `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.9rem;">Select at least 1 source and 1 destination station to generate the cost matrix.</div>`;
+    warn.style.display='none'; sdSection.style.display='none'; return;
+  }
+  warn.style.display='none'; sdSection.style.display='block';
+
+  // Preserve existing values
+  const existingVals={};
+  document.querySelectorAll('[data-cost]').forEach(inp=>{ existingVals[inp.dataset.cost]=inp.value; });
+  const existingSup={}, existingDem={};
+  document.querySelectorAll('[data-sup]').forEach(inp=>{ existingSup[inp.dataset.sup]=inp.value; });
+  document.querySelectorAll('[data-dem]').forEach(inp=>{ existingDem[inp.dataset.dem]=inp.value; });
+
+  let html=`<div class="cost-matrix"><table class="cost-table"><thead><tr><th>Source \\ Dest</th>`;
+  selectedDst.forEach(d=>{ html+=`<th title="${d}">${d.length>10?d.slice(0,10)+'…':d}</th>`; });
+  html+=`</tr></thead><tbody>`;
+  selectedSrc.forEach((s,i)=>{
+    html+=`<tr><td class="row-header">${s}</td>`;
+    selectedDst.forEach((d,j)=>{
+      const key=`${s}||${d}`;
+      const v=existingVals[key]||defaultCost(s,d);
+      html+=`<td><input type="number" data-cost="${key}" id="c${i}_${j}" value="${v}" min="1" max="999"/></td>`;
+    });
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  document.getElementById('cost-matrix-container').innerHTML=html;
+
+  // Supply row
+  const defaultSupply=[200,180,220,150,200,170,190,160,210,185,195,175,205];
+  let sr=`<div class="sd-label" style="color:var(--accent3);font-weight:600;margin-right:4px;">📦 Supply:</div>`;
+  selectedSrc.forEach((s,i)=>{
+    const v=existingSup[s]||(defaultSupply[i%defaultSupply.length]);
+    sr+=`<div class="sd-group"><div class="sd-label">${s.length>12?s.slice(0,12)+'…':s}</div><input type="number" class="sd-input" data-sup="${s}" id="sup${i}" value="${v}" min="1"/></div>`;
+  });
+  document.getElementById('supply-row').innerHTML=sr;
+
+  const defaultDemand=[190,170,210,160,195,165,180,175,200,160,185,170,195];
+  let dr=`<div class="sd-label" style="color:var(--green);font-weight:600;margin-right:4px;">🎯 Demand:</div>`;
+  selectedDst.forEach((d,j)=>{
+    const v=existingDem[d]||(defaultDemand[j%defaultDemand.length]);
+    dr+=`<div class="sd-group"><div class="sd-label">${d.length>12?d.slice(0,12)+'…':d}</div><input type="number" class="sd-input" data-dem="${d}" id="dem${j}" value="${v}" min="1"/></div>`;
+  });
+  document.getElementById('demand-row').innerHTML=dr;
+}
+
+// ── READ MATRIX FROM INPUTS ──
+function readMatrix() {
+  const ns=selectedSrc.length, nd=selectedDst.length;
+  costMatrix=[]; supply=[]; demand=[];
+  for(let i=0;i<ns;i++){
+    costMatrix.push([]);
+    for(let j=0;j<nd;j++){
+      const inp=document.getElementById(`c${i}_${j}`);
+      costMatrix[i].push(inp?parseFloat(inp.value)||1:1);
+    }
+    const si=document.getElementById(`sup${i}`);
+    supply.push(si?parseInt(si.value)||100:100);
+  }
+  for(let j=0;j<nd;j++){
+    const di=document.getElementById(`dem${j}`);
+    demand.push(di?parseInt(di.value)||100:100);
+  }
+  const ts=supply.reduce((a,b)=>a+b,0), td=demand.reduce((a,b)=>a+b,0);
+  if(ts>td) demand[demand.length-1]+=(ts-td);
+  else if(td>ts) supply[supply.length-1]+=(td-ts);
+}
+
+// ── NWCM ──
+function solveNWCM() {
+  if(selectedSrc.length<1||selectedDst.length<1){alert('Please select source and destination stations first.');return;}
+  readMatrix();
+  const ns=supply.length, nd=demand.length;
+  const sup=[...supply], dem=[...demand];
+  nwcmAlloc=Array.from({length:ns},()=>Array(nd).fill(0));
+  let i=0,j=0;
+  while(i<ns&&j<nd){
+    const alloc=Math.min(sup[i],dem[j]);
+    nwcmAlloc[i][j]=alloc;
+    sup[i]-=alloc; dem[j]-=alloc;
+    if(sup[i]===0&&dem[j]===0){i++;j++;}
+    else if(sup[i]===0) i++;
+    else j++;
+  }
+}
+
+function renderNWCM() {
+  const srcs=selectedSrc, dsts=selectedDst;
+  const ns=srcs.length, nd=dsts.length;
+  let totalCost=0;
+  for(let i=0;i<ns;i++) for(let j=0;j<nd;j++) totalCost+=nwcmAlloc[i][j]*costMatrix[i][j];
+  let html=`<div class="cost-matrix"><table class="result-table"><thead><tr><th>Station</th>`;
+  dsts.forEach(d=>html+=`<th>${d.length>10?d.slice(0,10)+'…':d}</th>`);
+  html+=`<th>Supply</th></tr></thead><tbody>`;
+  for(let i=0;i<ns;i++){
+    html+=`<tr><td class="row-header">${srcs[i]}</td>`;
+    for(let j=0;j<nd;j++){
+      const v=nwcmAlloc[i][j];
+      html+=v>0?`<td class="cell-alloc">${v}<br><small style="opacity:0.6;font-size:0.65rem;">×${costMatrix[i][j]}</small></td>`:`<td class="cell-zero">—</td>`;
+    }
+    html+=`<td style="color:var(--accent3);font-weight:700;">${supply[i]}</td></tr>`;
+  }
+  html+=`<tr><td class="row-header">Demand</td>`;
+  demand.forEach(d=>html+=`<td style="color:var(--green);font-weight:700;">${d}</td>`);
+  html+=`<td></td></tr></tbody></table></div>`;
+  document.getElementById('nwcm-result').innerHTML=html;
+  document.getElementById('nwcm-cost-display').innerHTML=`
+    <div class="total-cost-banner">
+      <div class="amount">${totalCost.toLocaleString()}</div>
+      <div class="label">Total Transportation Cost (NWCM — Initial BFS) — passenger × minutes</div>
+    </div>`;
+}
+
+// ── TASK ASSIGNMENTS ──
+function renderAssignments() {
+  const srcs=selectedSrc, dsts=selectedDst;
+  const ns=srcs.length, nd=dsts.length;
+  let html='';
+  for(let i=0;i<ns;i++) for(let j=0;j<nd;j++){
+    if(nwcmAlloc[i][j]>0){
+      const cost=nwcmAlloc[i][j]*costMatrix[i][j];
+      html+=`<div class="assignment-row">
+        <div class="assignment-from">🟦 ${srcs[i]}</div>
+        <div class="assignment-arrow">→</div>
+        <div class="assignment-to">🟣 ${dsts[j]}</div>
+        <span class="assignment-cost">${nwcmAlloc[i][j]} pax @ ${costMatrix[i][j]}min = ${cost}</span>
+      </div>`;
+    }
+  }
+  document.getElementById('task-assignments').innerHTML=html||`<div style="color:var(--muted);padding:1rem;">No allocations found.</div>`;
+}
+
+// ── HUNGARIAN ──
+function solveHungarian() {
+  const ns=supply.length, nd=demand.length;
+  const n=Math.max(ns,nd);
+  let m=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i<ns&&j<nd?costMatrix[i][j]:0));
+  for(let i=0;i<n;i++){const mn=Math.min(...m[i]);m[i]=m[i].map(v=>v-mn);}
+  for(let j=0;j<n;j++){const mn=Math.min(...m.map(r=>r[j]));for(let i=0;i<n;i++)m[i][j]-=mn;}
+  hungAssign=[];
+  const rowUsed=new Set(),colUsed=new Set();
+  for(let pass=0;pass<n;pass++){
+    for(let i=0;i<n;i++){
+      if(rowUsed.has(i)) continue;
+      for(let j=0;j<n;j++){
+        if(colUsed.has(j)) continue;
+        if(m[i][j]===0){if(i<ns&&j<nd)hungAssign.push([i,j]);rowUsed.add(i);colUsed.add(j);break;}
+      }
+    }
+  }
+  return m;
+}
+
+function renderHungarian() {
+  const srcs=selectedSrc, dsts=selectedDst;
+  const ns=srcs.length, nd=dsts.length;
+  const reducedM=solveHungarian();
+  let html=`<div style="margin-bottom:1.5rem;">
+    <div class="panel-title" style="font-size:1rem;margin-bottom:1rem;">Reduced Cost Matrix (Row & Column Reduction)</div>
+    <div class="cost-matrix"><table class="result-table"><thead><tr><th></th>`;
+  dsts.forEach(d=>html+=`<th>${d.length>10?d.slice(0,10)+'…':d}</th>`);
+  html+=`</tr></thead><tbody>`;
+  for(let i=0;i<ns;i++){
+    html+=`<tr><td class="row-header">${srcs[i]}</td>`;
+    for(let j=0;j<nd;j++){
+      const v=reducedM[i][j];
+      html+=v===0?`<td class="cell-alloc">0 ✓</td>`:`<td>${v}</td>`;
+    }
+    html+=`</tr>`;
+  }
+  html+=`</tbody></table></div></div>`;
+  document.getElementById('hungarian-steps').innerHTML=html;
+
+  let optHtml='', totalOpt=0;
+  hungAssign.forEach(([i,j])=>{
+    const pax=Math.min(supply[i],demand[j]);
+    const cost=pax*costMatrix[i][j];
+    totalOpt+=cost;
+    optHtml+=`<div class="assignment-row">
+      <div class="assignment-from">🟦 ${srcs[i]}</div>
+      <div class="assignment-arrow">⟹</div>
+      <div class="assignment-to">🟣 ${dsts[j]}</div>
+      <span class="assignment-cost">Cost: ${costMatrix[i][j]}min/pax</span>
+    </div>`;
+  });
+  optHtml+=`<div class="total-cost-banner"><div class="amount">${totalOpt.toLocaleString()}</div><div class="label">Optimal Total Cost (Hungarian Method) — passenger × minutes</div></div>`;
+  document.getElementById('hungarian-result').innerHTML=optHtml;
+}
+
+// ── SIMULATION ──
+function buildFlowCards() {
+  const srcs=selectedSrc, dsts=selectedDst;
+  const grid=document.getElementById('flow-grid');
+  grid.innerHTML='';
+  hungAssign.forEach(([i,j],idx)=>{
+    grid.innerHTML+=`<div class="flow-card" id="flow-card-${idx}">
+      <div class="flow-route">${srcs[i]} → ${dsts[j]}</div>
+      <div class="flow-passengers" id="flow-pax-${idx}">0</div>
+      <div class="flow-label">passengers dispatched</div>
+      <div class="flow-progress"><div class="flow-bar" id="flow-bar-${idx}"></div></div>
+    </div>`;
+  });
+}
+
+function addLog(msg,type='') {
+  const log=document.getElementById('sim-log');
+  const now=new Date();
+  const ts=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0')+':'+now.getSeconds().toString().padStart(2,'0');
+  const entry=document.createElement('div');
+  entry.className=`log-entry ${type}`;
+  entry.innerHTML=`<span class="ts">[${ts}]</span><span class="msg">${msg}</span>`;
+  log.prepend(entry);
+}
+
+function startSimulation() {
+  buildFlowCards();
+  const speedVal=6-parseInt(document.getElementById('sim-speed').value);
+  const interval=speedVal*400;
+  let tick=0;
+  addLog('Simulation started — Hungarian optimal routes active','success');
+  simInterval=setInterval(()=>{
+    tick++;
+    hungAssign.forEach(([i,j],idx)=>{
+      const max=Math.min(supply[i],demand[j]);
+      const pax=Math.floor(Math.random()*max*0.3)+Math.floor(max*0.6);
+      const pct=Math.round(pax/max*100);
+      document.getElementById(`flow-pax-${idx}`).textContent=pax.toLocaleString();
+      document.getElementById(`flow-bar-${idx}`).style.width=pct+'%';
+      document.getElementById(`flow-card-${idx}`).classList.toggle('active-flow',pct>80);
+      if(pct>90) addLog(`⚠ ${selectedSrc[i]} → ${selectedDst[j]}: ${pax} pax (${pct}% capacity)`,'warn');
+    });
+    if(tick%5===0) addLog(`Tick #${tick} — Flow update dispatched`,'success');
+  },interval);
+}
+function stopSimulation() {
+  if(simInterval){clearInterval(simInterval);simInterval=null;addLog('Simulation stopped.');}
+}
+
+// ── STEPPER ──
+function goToStep(n) {
+  if(n===2){
+    if(selectedSrc.length<1||selectedDst.length<1){alert('Please select at least 1 source and 1 destination station.');return;}
+    solveNWCM(); renderNWCM();
+  }
+  if(n===3) renderAssignments();
+  if(n===4) renderHungarian();
+  if(n===5) buildFlowCards();
+  for(let i=1;i<=5;i++){
+    const s=document.getElementById(`step-${i}`);
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done');
+    else if(i===n) s.classList.add('active');
+    document.getElementById(`panel-${i}`).classList.toggle('active',i===n);
+  }
+  currentStep=n;
+}
+
+function resetAll() {
+  stopSimulation();
+  selectedSrc=[]; selectedDst=[];
+  initPicker();
+  goToStep(1);
+  for(let i=1;i<=5;i++){
+    const s=document.getElementById(`step-${i}`);
+    s.classList.remove('active','done');
+    if(i===1) s.classList.add('active');
+    document.getElementById(`panel-${i}`).classList.toggle('active',i===1);
+  }
+}
+</script>
+</body>
+</html>
